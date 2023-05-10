@@ -210,12 +210,13 @@ namespace IndividualTasks {
 
 
 namespace Client {
-	void Begin(string& path) {
+	void Begin(string& path, const string& buffer_path) {
 		File::InputFile fin(path); // Возвращает путь
 		vector<string> text = fin.ReadFile();
 		Print::PrintText(text, "Начальный файл:", Color::second);
+		File::Write(buffer_path, text);
 	}
-	void Current(string& path) {
+	void Current(string path) {
 		File::InputFile fin(path); // Возвращает путь
 		vector<string> text = fin.ReadFile();
 		Print::PrintText(text);
@@ -239,7 +240,7 @@ namespace Client {
 		else {
 			exit(1);
 		}
-		File::Write("output.txt", text);
+		File::Write(path, text);
 	}
 }
 
@@ -254,10 +255,11 @@ int main()
 	locale loc("");
 	
 	string path;
-	Client::Begin(path);
-
+	string buffer_path = "output.txt";
+	Client::Begin(path, buffer_path);
+	
 	while (true) {
-		Client::Current(path);
+		Client::Current(buffer_path);
 	}
 	return 0;
 
