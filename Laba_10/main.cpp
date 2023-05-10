@@ -19,6 +19,12 @@ namespace File {
 		}
 		fout.close();
 	}
+	void Write(string path, const string& text) {
+		ofstream fout;
+		fout.open(path, 'w');
+		fout << text << endl;
+		fout.close();
+	}
 	class InputFile {
 	public:
 		InputFile(string& path) {
@@ -162,6 +168,7 @@ namespace IndividualTasks {
 	void Selection(vector<string>& text) {
 		auto [pos_begin, pos_end] = GetSelectionPosition(text);
 		string copy = Copy(text, pos_begin, pos_end);
+		File::Write("Selected.txt", copy);
 		cout << "Отобранное значение\n";
 		ConsoleColor color;
 		color.SetColor(second);
