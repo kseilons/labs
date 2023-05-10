@@ -6,81 +6,9 @@
 #include <sstream>
 #include <algorithm>
 #include "ConsoleRead.h"
+#include "Position.h"
+#include "ConsoleColor.h"
 using namespace std;
-
-
-enum Color {
-	primary,
-	second
-};
-
-
-class ConsoleColor {
-public:
-	ConsoleColor() {
-		out = GetStdHandle(STD_OUTPUT_HANDLE);
-		GetConsoleScreenBufferInfo(out, &start_attribute);
-	}
-	void SetColor(Color color) {
-		if (color == Color::primary) {
-			SetConsoleTextAttribute(out, 3);
-		}
-		else if (color == Color::second) {
-			SetConsoleTextAttribute(out, 10);
-		}
-	}
-
-	~ConsoleColor() {
-		SetDefaultColor();
-	}
-
-	void SetDefaultColor() {
-		SetConsoleTextAttribute(out, start_attribute.wAttributes);
-	}
-
-
-private:
-	HANDLE out;
-	CONSOLE_SCREEN_BUFFER_INFO start_attribute;
-};
-
-class Print {
-public:
-	static void PrintText(vector<string> text, string message= "Текущее состояние файла:", Color color = Color::primary) {
-		ConsoleColor Console;
-		cout << message << endl;
-		Console.SetColor(color);
-		for (size_t line_count = 0; line_count < text.size(); ++line_count) {
-			PrintLine(line_count, text[line_count]);
-		}
-	}
-private:
-	static void PrintLine(size_t line, string str) {
-		cout << line + 1 << ". " << str << endl;
-	}
-};
-
-namespace StrPreproces {
-
-	void Capitalize(vector<string>& text) {
-		for (string& line : text) {
-			bool IsCap = true;
-			for (char& ch : line) {
-				if (ch == ' ' || ch == '(' || ch == '"' || ch == '.' || ch == ',') {
-					IsCap = true;
-				}
-				else if (IsCap) {
-					ch = toupper(ch);
-					IsCap = false;
-				}
-			}
-			
-		}
-	}
-
-
-}
-
 
 namespace File {
 	void Write(string path, const vector<string>& text) {
@@ -148,6 +76,132 @@ namespace File {
 }
 
 
+class Print {
+public:
+	static void PrintText(vector<string> text, string message= "Текущее состояние файла:", Color color = Color::primary) {
+		ConsoleColor Console;
+		cout << endl << message << endl;
+		Console.SetColor(color);
+		for (size_t line_count = 0; line_count < text.size(); ++line_count) {
+			PrintLine(line_count, text[line_count]);
+		}
+	}
+private:
+	static void PrintLine(size_t line, string str) {
+		cout << line + 1 << ". " << str << endl;
+	}
+};
+
+namespace IndividualTasks {
+
+	void Capitalize(vector<string>& text) {
+		for (string& line : text) {
+			bool IsCap = true;
+			for (char& ch : line) {
+				if (ch == ' ' || ch == '(' || ch == '"' || ch == '.' || ch == ',') {
+					IsCap = true;
+				}
+				else if (IsCap) {
+					ch = toupper(ch);
+					IsCap = false;
+				}
+			}	
+		}
+	}
+
+	
+
+	pair<Position, Position> GetSelectionPosition(vector<string>& text) {
+		Position pos_begin;
+		Position pos_end;
+		do
+		{
+			pos_begin = Read::GetPosition("Введите номер строки и символ, откуда начать копирование: ");
+			pos_end = Read::GetPosition("Введите номер строки и символ, конца копирования: ");
+
+			if (pos_end == pos_begin) {
+				cout << "Введите хотя бы какой-то интервал пожалуйста :(" << endl;
+			}
+			else if (pos_begin.row < text.size() + 1 && pos_begin.column <= text[pos_begin.row - 1].size() + 1
+				&& pos_end.row < text.size() + 1 && pos_end.column <= text[pos_end.row - 1].size() + 1) {
+				return { pos_begin, pos_end };
+			}
+			else {
+				cout << "Ошибка индексации, попробуйте еще раз" << endl;
+			}
+		} while (true);
+	}
+	string Copy(vector<string>& text, Position pos_begin, Position pos_end) {
+		string result;
+		if (pos_begin > pos_end) {
+			std::swap(pos_begin, pos_end);
+		}
+
+		for (size_t column = pos_begin.column - 1; column < (pos_end.row == pos_begin.row ?
+			pos_end.column - 1
+			: text[pos_begin.row - 1].size()); column++) {
+			result += text[pos_begin.row - 1][column];
+		}
+		for (size_t row = pos_begin.row; row < pos_end.row - 1; row++) {
+			result += '\n';
+			for (size_t column = 0; column < text[row].size(); column++) {
+				result += text[row][column];
+			}
+			
+		}
+		if (pos_begin.row != pos_end.row) {
+			result += '\n';
+			for (size_t column = 0; column < pos_end.column - 1; column++) {
+				result += text[pos_end.row - 1][column];
+			}
+		}
+		
+		return result;
+	}
+
+	void Selection(vector<string>& text) {
+		auto [pos_begin, pos_end] = GetSelectionPosition(text);
+		string copy = Copy(text, pos_begin, pos_end);
+		cout << "Отобранное значение\n";
+		ConsoleColor color;
+		color.SetColor(second);
+		cout<< copy << endl;
+	}
+
+	string ToLower(const string& str) {
+		string result;
+		for (char c : str) {
+			result += tolower(c);
+		}
+		return result;
+	}
+
+	void Search(vector<string> text) {
+		cout << "Введите запрос:"s;
+		string query = Read::ReadLine();
+		ConsoleColor color(second);
+		bool find = false;
+		for (size_t i = 0; i < text.size(); i++) {
+			string to_search = ToLower(text[i]);
+			size_t ind = to_search.find(ToLower(query));
+			while (ind < text[i].size()) {
+				find = true;
+				cout <<'"' << query << "\" найденно в \"" << text[i] << "\". На " << i + 1
+					<< " строке, первый символ " << ind + 1 << endl;
+				ind = to_search.find(ToLower(query), ind + 1);
+			}
+		}
+		if (!find) {
+			cout << "По вашему запросу ничего не найдено"s << endl;
+		}
+	}
+
+
+}
+
+
+
+
 namespace Client {
 	void Begin(string& path) {
 		File::InputFile fin(path); // Возвращает путь
@@ -158,23 +212,22 @@ namespace Client {
 		File::InputFile fin(path); // Возвращает путь
 		vector<string> text = fin.ReadFile();
 		Print::PrintText(text);
-
-		cout << "Меню:" << endl;
+		
+		cout << endl << "Меню:" << endl;
 		cout << "1.Отбор (с N до M символа)." << endl
 			<< "2.Замена всех первых строчных букв слов прописными" << endl
 			<< "3.Поиск в строке." << endl
 			<< "-Любую другую цифру для выхода" << endl;
 
-		string str = Read::ReadLine();
-		int a = stoi(str);
+		int a = Read::GetIntNum("Введите число:");
 		if (a == 1) {
-			cout << 1;
+			IndividualTasks::Selection(text);
 		}
 		else if (a == 2) {
-			StrPreproces::Capitalize(text);
+			IndividualTasks::Capitalize(text);
 		}
 		else if (a == 3) {
-			cout << 2;
+			IndividualTasks::Search(text);
 		}
 		else {
 			exit(1);
@@ -229,158 +282,18 @@ namespace Console {
 int main()
 
 {
-	ConsoleColor Console;
 	setlocale(LC_ALL, "Russian");
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
 	locale loc("");
 	
 	string path;
-	Client::Begin(path);
+	//Client::Begin(path);
+	path = "1.txt";
 
 	while (true) {
 		Client::Current(path);
 	}
-//menu:
-//
-//
-//
-//
-//	cout << "Меню:\n";
-//
-//
-//	cout << "1.Копирование строк\n2.Замена всех первых строчных букв слов прописными\n3.Вставка текста из файла.\n--Любую другую цифру для выхода\n";
-
-	//string s;
-	//double a;
-	//cin >> a;
-	//int q, flag = 0;
-	//double p, k, y;
-	//cout << endl;
-	//if ((a != 1) && (a != 2) && (a != 3) || (cin.fail()))
-	//{
-	//	exit(0);
-	//}
-
-	//if (a == 1)  //   Копирование строк                               
-	//{
-	//	cout << "Введите номер строки, которую хотите скопировать " << endl;
-	//	do
-	//	{
-	//		cin >> p;
-	//		if (p < 0 || p != floor(p) || p>text.size() - 1)
-	//		{
-	//			cout << "Введите корректное значение " << endl;
-	//		}
-	//	} while (p < 0 || p != floor(p) || p>text.size() - 1);
-	//	cout << "Введите номер строки, после которой хотите вставить скопированную строку " << endl;
-	//	do
-	//	{
-	//		cin >> k;
-	//		if (k < 0 || k != floor(k) || k>text.size() - 1)
-	//		{
-	//			cout << "Введите корректное значение " << endl;
-	//		}
-	//	} while (k < 0 || k != floor(k) || k>text.size() - 1);
-	//	fout.open("222.txt");
-	//	for (q = 0; q <= k; q++)
-	//	{
-	//		fout << text[q] << endl;;
-	//	}
-	//	fout << text[p] << endl;
-	//	for (int q = k + 1; q < text.size(); q++)
-	//	{
-	//		fout << text[q] << endl;;
-	//	}
-	//	fout.close();
-	//	goto menu;
-	//}
-
-	//if (a == 2)
-	//{
-	//	fout.open("222.txt");
-	//	string w;//Будет содержать текущее слово из текста
-	//	string t;
-	//	vector <string> array;//Вектор, каждый элемент которого слово из текста
-	//	cout << "Введите номер строки, в которой хотите произвести преобразования " << endl;
-	//	do
-	//	{
-	//		cin >> y;
-	//		if (y< 0 || y != floor(y) || y>text.size() - 1)
-	//		{
-	//			cout << "Введите корректное значение " << endl;
-	//		}
-	//	} while (y < 0 || y != floor(y) || y>text.size() - 1);
-	//	for (q = 0; q < y; q++)
-	//	{
-	//		fout << text[q] << endl;;
-	//	}
-	//	t = text[y];
-	//	stringstream ss(t);
-	//	while (ss >> w)
-	//	{
-	//		array.push_back(w);
-	//	}
-	//	for (j = 0; j < array.size(); j++)
-	//	{
-	//		if (array[j].length() == 1)
-	//		{
-	//			array[j][0] = toupper(array[j][0]);
-	//		}
-	//		else
-	//		{
-	//			for (int l = 0; l < array[j].length() - 1; l++)
-	//			{
-	//				if (array[j][0] > 96 && array[j][0] < 123)
-	//				{
-	//					array[j][0] = toupper(array[j][0]);
-	//				}
-	//				else
-	//					if (array[j][l + 1] > 96 && array[j][l + 1] < 123 && array[j][l]>64 && array[j][l] < 91)
-	//					{
-	//						array[j][l + 1] = toupper(array[j][l + 1]);
-	//						break;
-	//					}
-	//			}
-	//		}
-	//		fout << array[j] << ' ';
-	//	}
-	//	fout << endl;
-	//	for (int q = y + 1; q < text.size(); q++)
-	//	{
-	//		fout << text[q] << endl;;
-	//	}
-	//	array.clear();
-	//	fout.close();
-	//	goto menu;
-	//}
-
-
-	//if (a == 3)
-	//{
-	//	fin.open("111.txt");
-	//	if (!fin.is_open()) cout << "Ошибка открытия файла\n";
-	//	while (getline(fin, str))
-	//	{
-	//		new_txt.push_back(str);
-	//	}
-	//	fin.close();
-	//	fout.open("222.txt");
-	//	cout << "Введите номер строки, после которой хотите вставить текст из файла " << endl;
-	//	do
-	//	{
-	//		cin >> k;
-	//		if (k < 0 || k != floor(k) || k>text.size() - 1)
-	//		{
-	//			cout << "Введите корректное значение " << endl;
-	//		}
-	//	} while (k < 0 || k != floor(k) || k>text.size() - 1);
-	//	for (i = 0; i <= k; i++) fout << text[i] << endl;
-	//	for (i = 0; i < new_txt.size(); i++) fout << new_txt[i] << endl;
-	//	for (i = k + 1; i < text.size(); i++) fout << text[i] << endl;
-	//	fout.close();
-	//	goto menu;
-	//}
-
-
 	return 0;
 
 }
