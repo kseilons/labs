@@ -232,7 +232,7 @@ namespace Client {
 		else {
 			exit(1);
 		}
-		File::Write(path, text);
+		File::Write("output.txt", text);
 	}
 }
 
