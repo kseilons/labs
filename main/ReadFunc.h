@@ -38,19 +38,19 @@ public:
 	}
 
 	static void ReadlineInterval(double& tb_epsilon, double& x_start, double& x_end, double& x_del, double& a) {
-		tb_epsilon = Read::GetPositivNum("¬ведите точность (дл€ корректной работы программы ее значение должно быть больше 0):"s);
+		tb_epsilon = Read::GetPositivNum("¬ведите точность (ее значение должно быть больше 0):"s);
 		do {
 			x_start = Read::GetNum("¬ведите x_start:"s);
 			x_end = Read::GetNum("¬ведите x_end : "s);
 			do {
-				x_del = Read::GetNum("¬ведите шаг интервала (дл€ корректной работы программы оно не должно быть равно нулю):"s);
+				x_del = Read::GetNum("¬ведите шаг интервала (его значение не должно быть равно нулю):"s);
 			} while (x_del == 0);
 			if (!(x_start < x_end && x_del < 0) || (x_start > x_del && x_del > 0)) {
 				break;
 			}
 			std::cout << "»нтервал введен неверно, проход невозможен\n"s;
 		} while (true);
-		a = Read::GetNum("¬ведите значение параметра a:"s);
+		a = Read::GetNum("¬ведите значение a:"s);
 	}
 private:
 	static std::vector<std::string> SplitIntoWords(const std::string& textSaf)

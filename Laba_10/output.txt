@@ -1,4 +1,4 @@
-Hello, world! Hello, world! Hello, world! Hello, world! 
+Hello, World! Hello, World! Hello, World! Hello, World! 
 Lorem Ipsum - Это Текст-"Рыба", Часто Используемый В Печати И Вэб-дизайне.
 Lorem Ipsum является Стандартной "Рыбой" Для Текстов На Латинице С Начала XVI Века. 
 В То Время Некий Безымянный Печатник Создал Большую Коллекцию Размеров И Форм Шрифтов, Используя
@@ -7,6 +7,6 @@ Lorem Ipsum Для Распечатки Образцов. Lorem Ipsum Не Только Успешно Пережил Без З
 Листов Letraset С Образцами Lorem Ipsum В 60-х Годах И, В Более Недавнее Время, Программы Электронной
 Вёрстки Типа Aldus PageMaker, В Шаблонах Которых Используется Lorem Ipsum.
 
-Hello, world!
+Hello, World!
 
-Hello, world!
+Hello, World!
