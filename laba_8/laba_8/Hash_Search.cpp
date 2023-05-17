@@ -12,8 +12,9 @@ Hash_Search::Hash_Search() {
 	data_ = file.Read();
 
 	Hashing();
-	for (auto& elem : data_) {
-		std::cout << elem << std::endl;
+	for(int i = 0; i < data_.size(); i++) {
+		std::cout << data_[i]  << " Хеш инициалов:"<< hash_initials[i]
+			<< ", Хеш ФИО:" << hash_fulls[i] << std::endl;
 	}
 }
 

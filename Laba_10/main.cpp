@@ -84,17 +84,16 @@ namespace File {
 
 class Print {
 public:
-	static void PrintText(vector<string> text, string message= "Текущее состояние файла:", Color color = Color::primary) {
-		ConsoleColor Console;
+	static void PrintText(vector<string> text, string message = "Текущее состояние файла:", Color color = Color::primary) {
+		ConsoleColor Console(color);
 		cout << endl << message << endl;
-		Console.SetColor(color);
 		for (size_t line_count = 0; line_count < text.size(); ++line_count) {
 			PrintLine(line_count, text[line_count]);
 		}
 	}
 private:
 	static void PrintLine(size_t line, string str) {
-		cout << line + 1 << ". " << str << endl;
+		cout << line + 1 << "." << str << endl;
 	}
 };
 
@@ -104,18 +103,16 @@ namespace IndividualTasks {
 		for (string& line : text) {
 			bool IsCap = true;
 			for (char& ch : line) {
-				if (ch == ' ' || ch == '(' || ch == '"' || ch == '.' || ch == ',') {
+				if (ch == ' ' || ch == '('  || ch == '\\' || ch == '/' || ch == '"' || ch == '.' || ch == ',') {
 					IsCap = true;
 				}
 				else if (IsCap) {
 					ch = toupper(ch);
 					IsCap = false;
 				}
-			}	
+			}
 		}
 	}
-
-	
 
 	pair<Position, Position> GetSelectionPosition(vector<string>& text) {
 		Position pos_begin;
@@ -137,42 +134,38 @@ namespace IndividualTasks {
 			}
 		} while (true);
 	}
-	string Copy(vector<string>& text, Position pos_begin, Position pos_end) {
-		string result;
+
+	void Copy(vector<string>& text, Position pos_begin, Position pos_end) {
+		vector<string> result;
+		result.reserve(text.size());
+
 		if (pos_begin > pos_end) {
 			std::swap(pos_begin, pos_end);
 		}
+		size_t row_size = text[pos_begin.row - 1].size();
+		size_t end_column = pos_end.column - 1;
 
-		for (size_t column = pos_begin.column - 1; column < (pos_end.row == pos_begin.row ?
-			pos_end.column - 1
-			: text[pos_begin.row - 1].size()); column++) {
-			result += text[pos_begin.row - 1][column];
+		if (pos_begin.row == pos_end.row) {
+			result.push_back(text[pos_begin.row - 1].substr(pos_begin.column - 1, pos_end.column -1));
 		}
-		for (size_t row = pos_begin.row; row < pos_end.row - 1; row++) {
-			result += '\n';
-			for (size_t column = 0; column < text[row].size(); column++) {
-				result += text[row][column];
-			}
-			
-		}
-		if (pos_begin.row != pos_end.row) {
-			result += '\n';
-			for (size_t column = 0; column < pos_end.column - 1; column++) {
-				result += text[pos_end.row - 1][column];
-			}
+		else {
+			result.push_back(text[pos_begin.row - 1].substr(pos_begin.column - 1, row_size - (pos_begin.column - 1)));
 		}
 		
-		return result;
+		size_t end_row = pos_end.row - 1;
+		for (size_t row = pos_begin.row; row < end_row; row++) {
+			result.push_back(text[row]);
+		}
+
+		if (pos_begin.row != pos_end.row) {
+			result.push_back(text[pos_end.row - 1].substr(0, end_column));
+		}
+		swap(text, result);
 	}
 
 	void Selection(vector<string>& text) {
 		auto [pos_begin, pos_end] = GetSelectionPosition(text);
-		string copy = Copy(text, pos_begin, pos_end);
-		File::Write("Selected.txt", copy);
-		cout << "Отобранное значение\n";
-		ConsoleColor color;
-		color.SetColor(second);
-		cout<< copy << endl;
+		Copy(text, pos_begin, pos_end);
 	}
 
 	string ToLower(const string& str) {
@@ -183,37 +176,64 @@ namespace IndividualTasks {
 		return result;
 	}
 
-	void Search(vector<string> text) {
-		cout << "Введите запрос:"s;
-		string query = Read::ReadLine();
-		ConsoleColor color(second);
-		bool find = false;
-		for (size_t i = 0; i < text.size(); i++) {
-			string to_search = ToLower(text[i]);
+	void Search(const vector<string>& text) {
+		cout << "Выберите действие.\n1. Для поиска в конкретной строке\n2. Для поиска во всем тексте\nДля выхода любое другое число\n"s;
+		int a = Read::GetIntNum("Введите число:");
+		if (a == 1) {
+			int search_line = 0;
+			while (true)
+			{
+				search_line = Read::GetIntNum("Ввидите номер строки для поиска:");
+				if (search_line > text.size() || search_line <= 0) {
+					cout << "ошибка доступа к строке\n"s;
+					continue;
+				}
+				break;
+			}
+			cout << "Введите запрос:"s;
+			string query = Read::ReadLine();
+
+			ConsoleColor color(second);
+			bool is_find = false;
+			string to_search = ToLower(text[search_line-1]);
 			size_t ind = to_search.find(ToLower(query));
-			while (ind < text[i].size()) {
-				find = true;
-				cout <<'"' << query << "\" найденно в \"" << text[i] << "\". На " << i + 1
-					<< " строке, первый символ " << ind + 1 << endl;
+			while (ind < text[search_line-1].size()) {
+				is_find = true;
+				cout << '"' << query << "\" найденно начиная с " << ind + 1 << " символа" << endl;
 				ind = to_search.find(ToLower(query), ind + 1);
 			}
+			if (!is_find) {
+				cout << "По вашему запросу ничего не найдено"s << endl;
+			}
 		}
-		if (!find) {
-			cout << "По вашему запросу ничего не найдено"s << endl;
+		else if (a == 2) {
+			cout << "Введите запрос:"s;
+			string query = Read::ReadLine();
+			ConsoleColor color(second);
+			bool find = false;
+			for (size_t i = 0; i < text.size(); i++) {
+				string to_search = ToLower(text[i]);
+				size_t ind = to_search.find(ToLower(query));
+				while (ind < text[i].size()) {
+					find = true;
+					cout << '"' << query << "\" найденно в \"" << text[i] << "\". На " << i + 1
+						<< " строке, первый символ " << ind + 1 << endl;
+					ind = to_search.find(ToLower(query), ind + 1);
+				}
+			}
+			if (!find) {
+				cout << "По вашему запросу ничего не найдено"s << endl;
+			}
 		}
 	}
 
 
 }
 
-
-
-
 namespace Client {
 	void Begin(string& path, const string& buffer_path) {
 		File::InputFile fin(path); // Возвращает путь
 		vector<string> text = fin.ReadFile();
-		Print::PrintText(text, "Начальный файл:", Color::second);
 		File::Write(buffer_path, text);
 	}
 	void Current(string path) {
@@ -243,8 +263,6 @@ namespace Client {
 		File::Write(path, text);
 	}
 }
-
-
 
 int main()
 

@@ -107,19 +107,19 @@ namespace Drow {
 				cout << left << scientific << setw(19)<< f_row << " | ";
 			}
 			else {
-				cout << left << fixed << setprecision(6) << setw(19) << f_row << " | ";
+				cout << left << fixed << setprecision(7) << setw(19) << f_row << " | ";
 			}
 			if (f_math != 0 && (double_round(f_math) == 0 || f_math > 99999)) {
 				cout << left << scientific << setw(19) << f_math << " | ";
 			}
 			else {
-				cout << left << fixed << setprecision(6) << setw(19) << f_math << " | ";
+				cout << left << fixed << setprecision(7) << setw(19) << f_math << " | ";
 			}
 			if (delta != 0 && (double_round(delta) == 0 || delta > 99999)) {
 				cout << left << scientific << setw(18) << delta << " |\n";
 			}
 			else {
-				cout << left << fixed << setprecision(6) << setw(18) << delta << " |\n";
+				cout << left << fixed << setprecision(7) << setw(18) << delta << " |\n";
 			}
 		}
 		else if (infoTable == ErrorSaf) {

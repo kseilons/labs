@@ -7,7 +7,7 @@
 using namespace std::literals;
 class Read {
 public:
-	static std::string ReadLine(std::string message = "Неккоректное значение"s)
+	static std::string ReadLine(std::string message = "Неккоректное значение попробуйте еще раз\n"s)
 	{
 		while (true) {
 			std::string s;
