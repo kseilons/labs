@@ -93,10 +93,10 @@ void table1_processing(SafonovInfoType infoTable, void* output_line_Safonov(Safo
     f_math = myf_math(x_end, a);
     delta = sqrt(abs(f_row * f_row - f_math * f_math));
     if (isnan(delta) || isinf(delta) || (abs(x_end) > 10)) {
-        output_line_Safonov(ErrorSaf, color, LineCount++, x_end);
+        output_line_Safonov(ErrorSaf, color, ++LineCount, x_end);
     }
     else {
-        output_line_Safonov(infoTable, color, LineCount++, x_end, f_row, f_math, delta);
+        output_line_Safonov(infoTable, color, ++LineCount, x_end, f_row, f_math, delta);
     }
 }
 
